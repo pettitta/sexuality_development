@@ -1,0 +1,80 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+variables
+H2PR4 How much do your friends care about you
+H3SE13 Sexuality
+
+```{r setup, include=FALSE}
+rm(list=ls())
+library(rio)
+library(tidyverse)
+library(forcats)
+library(lme4)
+w2 <- get(load(("~/Downloads/w2inhome_dvn.RData"))) %>%
+  select(aid,h2pr4)
+
+w2[w2==c("(96) Refused")]=NA
+w2[w2==c("(98) Don't know")]=NA
+w2[w2==c("(6) Does not apply")]=NA
+
+w3 <- import("~/Downloads/w3inhome.sas7bdat") %>%
+   dplyr::select(AID,H3SE13,H3SP9) %>%
+   dplyr::rename(aid=AID)
+w3[w3==c("96")]=NA
+w3[w3==c("98")]=NA
+w3[w3==c("99")]=NA
+
+w3[w3==6]=NA
+w3[w3==c("98")]=NA
+w3[w3==c("99")]=NA
+
+
+w3$H3SE13 <- as.factor(w3$H3SE13)
+
+data <- merge(w2,w3)
+
+library(rockchalk)
+data$H3SE13 <- combineLevels(data$H3SE13,levs = c("3", "4","5"), newLabel = c("LGB") )
+data$H3SE13 <- combineLevels(data$H3SE13,levs = c("1"), newLabel = c("Straight") )
+data$H3SE13 <- combineLevels(data$H3SE13,levs = c("2"), newLabel = c("Leaning") )
+data$H3SE13 <- combineLevels(data$H3SE13,levs = c("6"), newLabel = c("Asexual") )
+
+
+data$aid <- as.factor(data$aid)
+data %>%
+  drop_na %>%
+  plotluck::plotluck(., H3SE13  ~ h2pr4)
+
+test <- MASS::polr(h2pr4 ~ H3SE13, data)
+
+summary(test)
+
+
+
+data %>%
+  drop_na %>%
+  plotluck::plotluck(., h2pr4  ~ H3SE13,weights=FALSE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
