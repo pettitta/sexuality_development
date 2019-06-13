@@ -25,9 +25,12 @@ w3 <- import("~/Downloads/w3inhome.sas7bdat") %>%
    dplyr::rename(aid=AID)
 w3[w3==c("96")]=NA
 w3[w3==c("98")]=NA
-w3[w3==c("99")]=NA
+w3[w3==c("99")] <- NA
 
-w3[w3==6]=NA
+w3$H3SP9[w3$H3SP9==8] <- NA
+w3$H3SP9[w3$H3SP9==9] <- NA
+w3$H3SP9[w3$H3SP9==6] <- NA
+
 w3[w3==c("98")]=NA
 w3[w3==c("99")]=NA
 
@@ -42,21 +45,33 @@ data$H3SE13 <- combineLevels(data$H3SE13,levs = c("1"), newLabel = c("Straight")
 data$H3SE13 <- combineLevels(data$H3SE13,levs = c("2"), newLabel = c("Leaning") )
 data$H3SE13 <- combineLevels(data$H3SE13,levs = c("6"), newLabel = c("Asexual") )
 
+data$h2pr4 <- as.numeric(data$h2pr4)
 
 data$aid <- as.factor(data$aid)
 data %>%
   drop_na %>%
   plotluck::plotluck(., H3SE13  ~ h2pr4)
 
-test <- MASS::polr(h2pr4 ~ H3SE13, data)
+data$H3SE13 <- relevel(data$H3SE13, ref="Straight")
+
+
+data <- data %>%
+  dplyr::rename(depression_w3 = H3SP9, sexuality_w3 = H3SE13, friends_w2 = h2pr4)
+
+
+test <- lm(depression_w3~ sexuality_w3*friends_w2, data)
 
 summary(test)
 
+library(jtools)
+interact_plot(test,pred=friends_w2,modx=sexuality_w3)
 
 
 data %>%
   drop_na %>%
-  plotluck::plotluck(., h2pr4  ~ H3SE13,weights=FALSE)
+  plotluck::plotluck(., h2pr4  ~ H3SE13)
+
+
 ```
 
 ## R Markdown
